@@ -1,0 +1,6 @@
+*.pem
+*accessKeys.csv
+*.zip
+.DS_Store
+kafka-4.2.2/
+.venv/

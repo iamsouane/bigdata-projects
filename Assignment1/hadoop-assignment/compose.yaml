@@ -1,0 +1,187 @@
+services:
+
+  namenode:
+    build: .
+    container_name: namenode
+    platform: linux/amd64
+    hostname: namenode
+    networks:
+      - hadoop-net
+    ports:
+      - "9870:9870"
+      - "8020:8020"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/dfs/name;
+      chown -R hadoop:hadoop /hadoop/dfs/name;
+      if [ ! -d /hadoop/dfs/name/current ]; then
+        echo 'Formatting NameNode...';
+        su hadoop -c 'hdfs namenode -format -force -nonInteractive';
+      fi;
+      exec su hadoop -c 'hdfs namenode'
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9870/dfshealth.html >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  datanode1:
+    build: .
+    platform: linux/amd64
+    container_name: datanode1
+    hostname: datanode1
+    networks:
+      - hadoop-net
+    ports:
+      - "9864:9864"
+    volumes:
+      - datanode1_data:/hadoop/dfs/data
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/dfs/data;
+      chown -R hadoop:hadoop /hadoop/dfs/data;
+      exec su hadoop -c 'hdfs datanode'
+      "
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  datanode2:
+    build: .
+    platform: linux/amd64
+    container_name: datanode2
+    hostname: datanode2
+    networks:
+      - hadoop-net
+    ports:
+      - "9865:9864"
+    volumes:
+      - datanode2_data:/hadoop/dfs/data
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/dfs/data;
+      chown -R hadoop:hadoop /hadoop/dfs/data;
+      exec su hadoop -c 'hdfs datanode'
+      "
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  datanode3:
+    build: .
+    platform: linux/amd64
+    container_name: datanode3
+    hostname: datanode3
+    networks:
+      - hadoop-net
+    ports:
+      - "9866:9864"
+    volumes:
+      - datanode3_data:/hadoop/dfs/data
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/dfs/data;
+      chown -R hadoop:hadoop /hadoop/dfs/data;
+      exec su hadoop -c 'hdfs datanode'
+      "
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  resourcemanager:
+    build: .
+    container_name: resourcemanager
+    platform: linux/amd64
+    hostname: resourcemanager
+    networks:
+      - hadoop-net
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    command: yarn resourcemanager
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  nodemanager1:
+    build: .
+    platform: linux/amd64
+    container_name: nodemanager1
+    hostname: nodemanager1
+    networks:
+      - hadoop-net
+    volumes:
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/yarn/local /hadoop/yarn/log;
+      chown -R hadoop:hadoop /hadoop/yarn;
+      exec su hadoop -c 'yarn nodemanager'
+      "
+    depends_on:
+      resourcemanager:
+        condition: service_started
+
+  nodemanager2:
+    build: .
+    platform: linux/amd64
+    container_name: nodemanager2
+    hostname: nodemanager2
+    networks:
+      - hadoop-net
+    volumes:
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/yarn/local /hadoop/yarn/log;
+      chown -R hadoop:hadoop /hadoop/yarn;
+      exec su hadoop -c 'yarn nodemanager'
+      "
+    depends_on:
+      resourcemanager:
+        condition: service_started
+
+  nodemanager3:
+    build: .
+    platform: linux/amd64
+    container_name: nodemanager3
+    hostname: nodemanager3
+    networks:
+      - hadoop-net
+    volumes:
+      - ./conf:/opt/hadoop/etc/hadoop:ro
+    user: root
+    command: >
+      bash -c "
+      mkdir -p /hadoop/yarn/local /hadoop/yarn/log;
+      chown -R hadoop:hadoop /hadoop/yarn;
+      exec su hadoop -c 'yarn nodemanager'
+      "
+    depends_on:
+      resourcemanager:
+        condition: service_started
+
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  datanode3_data:
+
+networks:
+  hadoop-net:
+    driver: bridge
