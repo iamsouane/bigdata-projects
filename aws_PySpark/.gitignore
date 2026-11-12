@@ -1,0 +1,13 @@
+# Captures originales non masquées (e-mail, ID de compte AWS, IP publique)
+captures/
+
+# Versions intermédiaires du rapport (captures non masquées ou partiellement masquées)
+Rapport_TP_EMR_Souane_final.docx
+Rapport_TP_EMR_Souane_v2.docx
+Rapport_TP_EMR_Souane_v3.docx
+Rapport_TP_EMR_Souane.pdf
+Rapport — *.docx
+
+# Sorties de test local et doublon des données
+output_local/
+transactions.csv
